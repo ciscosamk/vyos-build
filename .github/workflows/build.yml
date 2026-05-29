@@ -1,0 +1,26 @@
+yaml
+name: Build VyOS 1.4.4 ISO
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: sagitta
+
+      - name: Build VyOS ISO
+        run: |
+          docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:sagitta \
+          sudo ./configure --architecture amd64 --build-by "Custom Cloud Build" --version "1.4.4"
+          docker run --rm --privileged -v $(pwd):/vyos -w /vyos vyos/vyos-build:sagitta \
+          sudo make iso
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vyos-1.4.4-iso
+          path: build/vyos-*.iso
